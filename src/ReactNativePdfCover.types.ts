@@ -1,19 +1,13 @@
-import type { StyleProp, ViewStyle } from 'react-native';
-
 export type OnLoadEventPayload = {
   url: string;
 };
 
-export type ReactNativePdfCoverModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
-};
-
-export type ChangeEventPayload = {
-  value: string;
-};
-
-export type ReactNativePdfCoverViewProps = {
-  url: string;
-  onLoad: (event: { nativeEvent: OnLoadEventPayload }) => void;
-  style?: StyleProp<ViewStyle>;
+export type PDFCoverItem = {
+  cover: string;
+  page: number;
+  size: {
+    width: number;
+    height: number;
+  };
+  pageCount: number;
 };

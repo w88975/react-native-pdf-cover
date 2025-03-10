@@ -1,50 +1,129 @@
 package expo.modules.pdfcover
 
+import android.graphics.Bitmap
+import android.net.Uri
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.net.URL
+import java.io.ByteArrayOutputStream
+import java.io.File
+import android.util.Base64
+import android.content.Context
+import kotlin.coroutines.suspendCoroutine
+import android.graphics.pdf.PdfRenderer;
+import android.os.ParcelFileDescriptor;
+import java.io.IOException;
 
 class ReactNativePdfCoverModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
   override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('ReactNativePdfCover')` in JavaScript.
     Name("ReactNativePdfCover")
 
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants(
-      "PI" to Math.PI
-    )
+    AsyncFunction("getPdfCover") { path: String, password: String?, page: Int, width: Double?, height: Double?, scale: Double? ->
+      val context = appContext.reactContext!!
+      val uri = Uri.parse(path)
 
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
+      var parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r")
+        ?: throw Exception("Failed to open PDF")
 
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      "Hello world! 👋"
-    }
+      var renderer: PdfRenderer? = null
+      try {
+        renderer = PdfRenderer(parcelFileDescriptor)
 
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
-    }
+        if (page < 1 || page > renderer.pageCount) {
+          throw Exception("Invalid page number")
+        }
 
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
-    View(ReactNativePdfCoverView::class) {
-      // Defines a setter for the `url` prop.
-      Prop("url") { view: ReactNativePdfCoverView, url: URL ->
-        view.webView.loadUrl(url.toString())
+        val pdfPage = renderer.openPage(page - 1)
+
+        val pageWidth = pdfPage.width
+        val pageHeight = pdfPage.height
+
+        val targetWidth = width?.toInt() ?: (pageWidth * (scale ?: 1.0)).toInt()
+        val targetHeight = height?.toInt() ?: (pageHeight * (scale ?: 1.0)).toInt()
+
+        val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        pdfPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+
+        val result = mapOf(
+          "cover" to base64String,
+          "page" to page,
+          "size" to mapOf(
+            "width" to targetWidth,
+            "height" to targetHeight
+          ),
+          "pageCount" to renderer.pageCount // ✅ 这里访问 renderer.pageCount 需要保证 renderer 还未关闭
+        )
+
+        // 清理资源
+        bitmap.recycle()
+        pdfPage.close()
+        renderer.close()
+        parcelFileDescriptor.close()
+
+        return@AsyncFunction result
+      } catch (e: Exception) {
+        renderer?.close()
+        parcelFileDescriptor.close()
+        throw Exception("PDF Rendering Error: ${e.message}")
       }
-      // Defines an event that the view can send to JavaScript.
-      Events("onLoad")
+    }
+
+    AsyncFunction("getPdfCoverList") { path: String, password: String?, scale: Double ->
+      val context = appContext.reactContext!!
+      val uri = Uri.parse(path)
+
+      val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r")
+        ?: throw Exception("Failed to open PDF")
+
+      try {
+        val renderer = PdfRenderer(parcelFileDescriptor)
+        val results = mutableListOf<Map<String, Any>>()
+        val pageCount = renderer.pageCount
+
+        // 遍历每一页
+        for (pageIndex in 0 until pageCount) {
+          val pdfPage = renderer.openPage(pageIndex)
+
+          // 计算目标尺寸
+          val targetWidth = (pdfPage.width * scale).toInt()
+          val targetHeight = (pdfPage.height * scale).toInt()
+
+          // 创建Bitmap
+          val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+
+          // 渲染页面
+          pdfPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+          // 压缩成PNG并转换为Base64
+          val outputStream = ByteArrayOutputStream()
+          bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+          val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+
+          results.add(
+            mapOf(
+              "cover" to base64String,
+              "page" to (pageIndex + 1),
+              "size" to mapOf("width" to targetWidth, "height" to targetHeight),
+              "pageCount" to pageCount
+            )
+          )
+
+          // 清理资源
+          bitmap.recycle()
+          pdfPage.close()
+        }
+
+        renderer.close()
+        parcelFileDescriptor.close()
+
+        return@AsyncFunction results
+      } catch (e: Exception) {
+        parcelFileDescriptor.close()
+        throw Exception("PDF Rendering Error: ${e.message}")
+      }
     }
   }
 }

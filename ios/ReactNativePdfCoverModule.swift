@@ -13,10 +13,8 @@ public class ReactNativePdfCoverModule: Module {
         
         // Modify PDF thumbnail generation function with optional parameters
         AsyncFunction("getPdfCover") { (path: String, password: String?, page: Int, width: Double?, height: Double?, scale: Double?) -> [String: Any] in
-            // Decode file path
-            guard let pdfURL = URL(string: path) else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid PDF path"])
-            }
+            // Create file URL from path
+            let pdfURL = URL(fileURLWithPath: path)
             
             // Create PDF document
             guard let pdfDocument = PDFDocument(url: pdfURL) else {
@@ -94,10 +92,8 @@ public class ReactNativePdfCoverModule: Module {
         
         // Modify function to get all PDF page thumbnails
         AsyncFunction("getPdfCoverList") { (path: String, password: String?, scale: Double) -> [[String: Any]] in
-            // Decode file path
-            guard let pdfURL = URL(string: path) else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid PDF path"])
-            }
+            // Create file URL from path
+            let pdfURL = URL(fileURLWithPath: path)
             
             // Create PDF document
             guard let pdfDocument = PDFDocument(url: pdfURL) else {

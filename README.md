@@ -1,6 +1,8 @@
 # react-native-pdf-cover
 
-My new module
+High-performance PDF cover image extraction using native PDF rendering engines:
+- Android: Uses `PdfRenderer` from Android Framework
+- iOS: Uses `PDFKit` from Apple's native framework
 
 # API documentation
 

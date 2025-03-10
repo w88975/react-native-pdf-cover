@@ -36,7 +36,9 @@ export default function App() {
         const pdfUri = result.assets[0].uri;
         // 调用getPdfCover获取封面
         const coverResult = await getPDFCover({
-          path: pdfUri,
+          source: {
+            uri: "http://192.168.124.22:9999/test.pdf",
+          },
           password: "",
           page: 1,
           size: {
@@ -63,7 +65,9 @@ export default function App() {
       if (result.assets && result.assets[0]) {
         const pdfUri = result.assets[0].uri;
         const results = await getPdfCoverList({
-          path: pdfUri,
+          source: {
+            uri: "https://raw.githubusercontent.com/mozilla/pdf.js-sample-files/master/tracemonkey.pdf",
+          },
           scale: 1,
         });
 

@@ -19,9 +19,8 @@ class ReactNativePdfCoverModule : Module() {
 
     AsyncFunction("getPdfCover") { path: String, password: String?, page: Int, width: Double?, height: Double?, scale: Double? ->
       val context = appContext.reactContext!!
-      val uri = Uri.parse(path)
-
-      var parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r")
+      
+      val parcelFileDescriptor = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
         ?: throw Exception("Failed to open PDF")
 
       var renderer: PdfRenderer? = null
@@ -73,9 +72,8 @@ class ReactNativePdfCoverModule : Module() {
 
     AsyncFunction("getPdfCoverList") { path: String, password: String?, scale: Double ->
       val context = appContext.reactContext!!
-      val uri = Uri.parse(path)
-
-      val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r")
+      
+      val parcelFileDescriptor = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
         ?: throw Exception("Failed to open PDF")
 
       try {

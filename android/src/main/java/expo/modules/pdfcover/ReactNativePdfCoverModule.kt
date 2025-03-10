@@ -21,14 +21,14 @@ class ReactNativePdfCoverModule : Module() {
       val context = appContext.reactContext!!
       
       val parcelFileDescriptor = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
-        ?: throw Exception("Failed to open PDF")
+        ?: throw Exception("[react-native-pdf-cover] Failed to open PDF")
 
       var renderer: PdfRenderer? = null
       try {
         renderer = PdfRenderer(parcelFileDescriptor)
 
         if (page < 1 || page > renderer.pageCount) {
-          throw Exception("Invalid page number")
+          throw Exception("[react-native-pdf-cover] Invalid page number")
         }
 
         val pdfPage = renderer.openPage(page - 1)
@@ -53,10 +53,9 @@ class ReactNativePdfCoverModule : Module() {
             "width" to targetWidth,
             "height" to targetHeight
           ),
-          "pageCount" to renderer.pageCount // ✅ 这里访问 renderer.pageCount 需要保证 renderer 还未关闭
+          "pageCount" to renderer.pageCount // 这里访问 renderer.pageCount 需要保证 renderer 还未关闭
         )
 
-        // 清理资源
         bitmap.recycle()
         pdfPage.close()
         renderer.close()
@@ -81,21 +80,16 @@ class ReactNativePdfCoverModule : Module() {
         val results = mutableListOf<Map<String, Any>>()
         val pageCount = renderer.pageCount
 
-        // 遍历每一页
         for (pageIndex in 0 until pageCount) {
           val pdfPage = renderer.openPage(pageIndex)
 
-          // 计算目标尺寸
           val targetWidth = (pdfPage.width * scale).toInt()
           val targetHeight = (pdfPage.height * scale).toInt()
 
-          // 创建Bitmap
           val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
 
-          // 渲染页面
           pdfPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
-          // 压缩成PNG并转换为Base64
           val outputStream = ByteArrayOutputStream()
           bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
           val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
@@ -109,7 +103,6 @@ class ReactNativePdfCoverModule : Module() {
             )
           )
 
-          // 清理资源
           bitmap.recycle()
           pdfPage.close()
         }

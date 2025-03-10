@@ -34,6 +34,7 @@ const makeSourceToBlobPath = async (source: ImageURISource | undefined) => {
   }
 
   if (typeof source === "string") {
+    //@ts-ignore
     return decodeURIComponent(source.replace(/file:\/\//i, ""));
   }
 

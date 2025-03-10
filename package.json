@@ -1,7 +1,7 @@
 {
   "name": "react-native-pdf-cover",
-  "version": "0.1.0",
-  "description": "My new module",
+  "version": "0.1.3",
+  "description": "Gets a cover image from a specific page of a PDF file.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -28,7 +28,9 @@
   "author": "w88975 <lwhzak@gmail.com> (https://github.com/w88975)",
   "license": "MIT",
   "homepage": "https://github.com/w88975/react-native-pdf-cover#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react-native-blob-util": "^0.21.2"
+  },
   "devDependencies": {
     "@types/react": "~18.3.12",
     "expo": "~52.0.0",
@@ -38,7 +40,6 @@
   "peerDependencies": {
     "expo": "*",
     "react": "*",
-    "react-native": "*",
-    "react-native-blob-util": "^0.21.2"
+    "react-native": "*"
   }
 }

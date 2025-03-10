@@ -11,32 +11,26 @@ public class ReactNativePdfCoverModule: Module {
         // The module will be accessible from `requireNativeModule('ReactNativePdfCover')` in JavaScript.
         Name("ReactNativePdfCover")
         
-        // Modify PDF thumbnail generation function with optional parameters
         AsyncFunction("getPdfCover") { (path: String, password: String?, page: Int, width: Double?, height: Double?, scale: Double?) -> [String: Any] in
-            // Create file URL from path
             let pdfURL = URL(fileURLWithPath: path)
             
-            // Create PDF document
             guard let pdfDocument = PDFDocument(url: pdfURL) else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load PDF"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load PDF"])
             }
             
-            // Handle password protection
             if pdfDocument.isLocked && password != nil {
                 pdfDocument.unlock(withPassword: password!)
             }
             
             if pdfDocument.isLocked {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Password required or incorrect password"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Password required or incorrect password"])
             }
             
-            // Get page
             let pageNumber = max(1, min(page, pdfDocument.pageCount))
             guard let pdfPage = pdfDocument.page(at: pageNumber - 1) else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get page from PDF"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get page from PDF"])
             }
             
-            // Calculate scale
             let pageRect = pdfPage.bounds(for: .mediaBox)
             let finalScale: CGFloat
             
@@ -50,7 +44,6 @@ public class ReactNativePdfCoverModule: Module {
                 finalScale = 1.0
             }
             
-            // Create thumbnail
             let contextSize = CGSize(
                 width: pageRect.width * finalScale,
                 height: pageRect.height * finalScale
@@ -58,27 +51,23 @@ public class ReactNativePdfCoverModule: Module {
             
             UIGraphicsBeginImageContextWithOptions(contextSize, false, 0.0)
             guard let context = UIGraphicsGetCurrentContext() else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create graphics context"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create graphics context"])
             }
             
-            // White background
             context.setFillColor(UIColor.white.cgColor)
             context.fill(CGRect(origin: .zero, size: contextSize))
             
-            // Draw PDF page
             context.scaleBy(x: finalScale, y: finalScale)
             pdfPage.draw(with: .mediaBox, to: context)
             
-            // Get image
             guard let image = UIGraphicsGetImageFromCurrentImageContext(),
                   let imageData = image.pngData() else {
                 UIGraphicsEndImageContext()
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create image"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create image"])
             }
             
             UIGraphicsEndImageContext()
             
-            // Return result object
             return [
                 "cover": imageData.base64EncodedString(),
                 "page": pageNumber,
@@ -90,36 +79,29 @@ public class ReactNativePdfCoverModule: Module {
             ]
         }
         
-        // Modify function to get all PDF page thumbnails
         AsyncFunction("getPdfCoverList") { (path: String, password: String?, scale: Double) -> [[String: Any]] in
-            // Create file URL from path
             let pdfURL = URL(fileURLWithPath: path)
             
-            // Create PDF document
             guard let pdfDocument = PDFDocument(url: pdfURL) else {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load PDF"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load PDF"])
             }
             
-            // Handle password protection
             if pdfDocument.isLocked && password != nil {
                 pdfDocument.unlock(withPassword: password!)
             }
             
             if pdfDocument.isLocked {
-                throw NSError(domain: "ReactNativePdfCover", code: -1, userInfo: [NSLocalizedDescriptionKey: "Password required or incorrect password"])
+                throw NSError(domain: "[react-native-pdf-cover]", code: -1, userInfo: [NSLocalizedDescriptionKey: "Password required or incorrect password"])
             }
             
             var coverList: [[String: Any]] = []
             let finalScale = CGFloat(scale)
             
-            // Iterate through all pages
             for pageIndex in 0..<pdfDocument.pageCount {
                 guard let pdfPage = pdfDocument.page(at: pageIndex) else { continue }
                 
-                // Get page size
                 let pageRect = pdfPage.bounds(for: .mediaBox)
                 
-                // Create thumbnail with specified scale
                 let contextSize = CGSize(
                     width: pageRect.width * finalScale,
                     height: pageRect.height * finalScale
@@ -128,15 +110,12 @@ public class ReactNativePdfCoverModule: Module {
                 UIGraphicsBeginImageContextWithOptions(contextSize, false, 0.0)
                 guard let context = UIGraphicsGetCurrentContext() else { continue }
                 
-                // White background
                 context.setFillColor(UIColor.white.cgColor)
                 context.fill(CGRect(origin: .zero, size: contextSize))
                 
-                // Draw PDF page
                 context.scaleBy(x: finalScale, y: finalScale)
                 pdfPage.draw(with: .mediaBox, to: context)
                 
-                // Get image
                 if let image = UIGraphicsGetImageFromCurrentImageContext(),
                    let imageData = image.pngData() {
                     coverList.append([

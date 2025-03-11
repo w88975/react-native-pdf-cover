@@ -57,7 +57,9 @@ public class ReactNativePdfCoverModule: Module {
             context.setFillColor(UIColor.white.cgColor)
             context.fill(CGRect(origin: .zero, size: contextSize))
             
-            context.scaleBy(x: finalScale, y: finalScale)
+            context.translateBy(x: 0.0, y: contextSize.height)
+            context.scaleBy(x: finalScale, y: -finalScale)
+
             pdfPage.draw(with: .mediaBox, to: context)
             
             guard let image = UIGraphicsGetImageFromCurrentImageContext(),
@@ -113,7 +115,9 @@ public class ReactNativePdfCoverModule: Module {
                 context.setFillColor(UIColor.white.cgColor)
                 context.fill(CGRect(origin: .zero, size: contextSize))
                 
-                context.scaleBy(x: finalScale, y: finalScale)
+                context.translateBy(x: 0.0, y: contextSize.height)
+                context.scaleBy(x: finalScale, y: -finalScale)
+                
                 pdfPage.draw(with: .mediaBox, to: context)
                 
                 if let image = UIGraphicsGetImageFromCurrentImageContext(),

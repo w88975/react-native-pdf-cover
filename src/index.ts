@@ -88,6 +88,7 @@ export async function getPDFCover(
     size?.height || null,
     scale
   );
+  ReactNativeBlobUtil.fs.unlink(path);
 
   return PDFCover;
 }
@@ -107,6 +108,8 @@ export async function getPdfCoverList(
     password,
     scale
   );
+
+  ReactNativeBlobUtil.fs.unlink(path);
 
   return PDFCoverList;
 }

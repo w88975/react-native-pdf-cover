@@ -26,7 +26,10 @@ type getPDFCoverFunction = {
       }
     | undefined;
   scale?: number | undefined;
+  autoPrefix?: boolean | undefined;
 };
+
+const DATA_URL_PREFIX = "data:image/png;base64,";
 
 const makeSourceToBlobPath = async (source: ImageURISource | undefined) => {
   if (!source) {
@@ -73,7 +76,14 @@ const makeSourceToBlobPath = async (source: ImageURISource | undefined) => {
 export async function getPDFCover(
   params: getPDFCoverFunction
 ): Promise<PDFCoverItem> {
-  const { source, password, page = 1.0, size, scale = 1 } = params;
+  const {
+    source,
+    password,
+    page = 1.0,
+    size,
+    scale = 1,
+    autoPrefix = false,
+  } = params;
   const path = await makeSourceToBlobPath(source);
 
   if (!path) {
@@ -88,15 +98,23 @@ export async function getPDFCover(
     size?.height || null,
     scale
   );
+
   ReactNativeBlobUtil.fs.unlink(path);
 
-  return PDFCover;
+  const result = {
+    cover: `${autoPrefix ? DATA_URL_PREFIX : ""}${PDFCover.cover}`,
+    page: PDFCover.page,
+    pageCount: PDFCover.pageCount,
+    size: PDFCover.size,
+  };
+
+  return result;
 }
 
 export async function getPdfCoverList(
   params: Omit<getPDFCoverFunction, "page" | "size">
 ): Promise<PDFCoverItem[]> {
-  const { source, password, scale } = params;
+  const { source, password, scale, autoPrefix = false } = params;
   const path = await makeSourceToBlobPath(source);
 
   if (!path) {
@@ -111,5 +129,14 @@ export async function getPdfCoverList(
 
   ReactNativeBlobUtil.fs.unlink(path);
 
-  return PDFCoverList;
+  const result: PDFCoverItem[] = PDFCoverList.map((pdf) => {
+    return {
+      cover: `${autoPrefix ? DATA_URL_PREFIX : ""}${pdf.cover}`,
+      page: pdf.page,
+      pageCount: pdf.pageCount,
+      size: pdf.size,
+    };
+  });
+
+  return result;
 }

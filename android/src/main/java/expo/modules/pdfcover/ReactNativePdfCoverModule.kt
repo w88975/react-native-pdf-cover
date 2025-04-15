@@ -12,6 +12,8 @@ import kotlin.coroutines.suspendCoroutine
 import android.graphics.pdf.PdfRenderer;
 import android.os.ParcelFileDescriptor;
 import java.io.IOException;
+import android.graphics.Canvas
+import android.graphics.Color
 
 class ReactNativePdfCoverModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -40,6 +42,11 @@ class ReactNativePdfCoverModule : Module() {
         val targetHeight = height?.toInt() ?: (pageHeight * (scale ?: 1.0)).toInt()
 
         val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        
+        // Create a canvas with white background
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(Color.WHITE)
+        
         pdfPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
         val outputStream = ByteArrayOutputStream()
@@ -87,6 +94,10 @@ class ReactNativePdfCoverModule : Module() {
           val targetHeight = (pdfPage.height * scale).toInt()
 
           val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+          
+          // Create a canvas with white background
+          val canvas = Canvas(bitmap)
+          canvas.drawColor(Color.WHITE)
 
           pdfPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 

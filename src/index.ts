@@ -99,8 +99,6 @@ export async function getPDFCover(
     scale
   );
 
-  ReactNativeBlobUtil.fs.unlink(path);
-
   const result = {
     cover: `${autoPrefix ? DATA_URL_PREFIX : ""}${PDFCover.cover}`,
     page: PDFCover.page,
@@ -126,8 +124,6 @@ export async function getPdfCoverList(
     password,
     scale
   );
-
-  ReactNativeBlobUtil.fs.unlink(path);
 
   const result: PDFCoverItem[] = PDFCoverList.map((pdf) => {
     return {

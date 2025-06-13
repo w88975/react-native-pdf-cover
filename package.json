@@ -1,6 +1,6 @@
 {
   "name": "react-native-pdf-cover",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Gets a cover image from a specific page of a PDF file.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
